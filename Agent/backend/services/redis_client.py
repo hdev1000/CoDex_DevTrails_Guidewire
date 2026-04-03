@@ -1,11 +1,7 @@
 import redis
-from backend.config import settings
+import os
 
-
-redis_client = redis.Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    db=settings.REDIS_DB,
-    password=settings.REDIS_PASSWORD,
+redis_client = redis.Redis.from_url(
+    os.getenv("REDIS_URL"),
     decode_responses=True
 )

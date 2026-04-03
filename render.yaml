@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: codex-backend
+    env: docker
+    plan: starter
+    autoDeploy: true
+    branch: main
+    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ENV
+        value: production
+      - key: REDIS_URL
+        sync: false
+      - key: MONGO_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: H3_CLUSTER_SECRET
+        sync: false
