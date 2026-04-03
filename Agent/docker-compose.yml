@@ -1,55 +1,33 @@
-version: '3.8'
+version: "3.9"
 
 services:
   backend:
     build: .
-    container_name: insurex_backend
+    container_name: codex-backend
+    restart: always
+    env_file:
+      - .env
     ports:
-      - "8000:8000"
+      - "8080:8080"
     depends_on:
+      - mongo
       - redis
-      - mongodb
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MONGO_URL=mongodb://mongodb:27017
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  redis:
-    image: redis:7-alpine
-    container_name: insurex_redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  mongodb:
-    image: mongo:6.0
-    container_name: insurex_mongodb
+  mongo:
+    image: mongo:6
+    container_name: codex-mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
     ports:
       - "27017:27017"
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  agent:
-    build: .
-    container_name: insurex_agent
-    depends_on:
-      - redis
-      - mongodb
-    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8001"]
+  redis:
+    image: redis:7
+    container_name: codex-redis
+    restart: always
     ports:
-      - "8001:8001"
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MONGO_URL=mongodb://mongodb:27017
+      - "6379:6379"
 
+volumes:
+  mongo_data:

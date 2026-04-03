@@ -11,3 +11,11 @@ requests
 python-dotenv
 PyPDF2
 google-generativeai
+
+fastapi
+uvicorn
+pydantic
+pymongo
+redis
+python-dotenv
+pyjwt
