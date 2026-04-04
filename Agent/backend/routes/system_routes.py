@@ -1,21 +1,27 @@
 from fastapi import APIRouter
-from services.consensus_v3 import ConsensusEngineV3
-from services.redis_client import redis_client
+from backend.utils.response import success_response, error_response
+from backend.services.security.rate_limit import user_rate_limit
+from backend.services.security.abuse_detector import detect_abuse
+from backend.config import settings
 
 router = APIRouter(prefix="/system", tags=["System"])
 
-consensus = ConsensusEngineV3()
-
 @router.get("/health")
-async def health_check():
-    redis_ok = redis_client.ping()
-    return {
-        "status": "ok",
-        "redis": redis_ok,
-        "consensus_engine": "v3"
-    }
+def health():
+    return success_response({"status": "ok"})
 
-@router.get("/consensus-test/{claim_id}")
-async def consensus_test(claim_id: str):
-    result = consensus.test_consensus(claim_id)
-    return {"claim_id": claim_id, "consensus": result}
+@router.get("/config")
+def config():
+    return success_response({
+        "env": settings.ENV,
+        "version": settings.API_VERSION,
+        "allowed_origins": settings.ALLOWED_ORIGINS,
+    })
+
+@router.post("/abuse/check")
+def abuse_check(payload: dict):
+    try:
+        result = detect_abuse(type("Claim", (), payload))
+        return success_response(result)
+    except Exception as e:
+        return error_response("ABUSE_CHECK_ERROR", str(e))

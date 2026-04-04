@@ -3,17 +3,17 @@ def detect_abuse(claim):
     reasons = []
 
     # IP hop
-    if claim.network_info.get("ip_hop", False):
+    if getattr(claim.network_info, "ip_hop", False):
         risk += 0.4
         reasons.append("Suspicious IP hopping detected.")
 
     # Distance/speed anomalies
-    if claim.speed and claim.speed > 150:
+    if getattr(claim, "speed", None) and claim.speed > 150:
         risk += 0.5
         reasons.append("Travel velocity anomaly >150 km/h.")
 
     # GPS spoofing risk
-    if claim.spoof_flag:
+    if getattr(claim, "spoof_flag", False):
         risk += 0.6
         reasons.append("GPS spoofing signal detected.")
 

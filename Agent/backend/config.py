@@ -1,5 +1,5 @@
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # -----------------------
     JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-secret")
     JWT_ALGO: str = "HS256"
+    JWT_ACCESS_EXP: int = 3600
+    JWT_REFRESH_EXP: int = 86400
     OTP_EXPIRY_SEC: int = 180
 
     # -----------------------
@@ -23,6 +25,7 @@ class Settings(BaseSettings):
     # -----------------------
     MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017/codex")
     MONGO_DB: str = "codex"
+    CLAIMS_COLLECTION: str = "claims"
 
     # -----------------------
     # REDIS CONFIG
@@ -31,6 +34,14 @@ class Settings(BaseSettings):
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB: int = int(os.getenv("REDIS_DB", 0))
     REDIS_PASSWORD: str | None = os.getenv("REDIS_PASSWORD", None)
+    REDIS_URL: str | None = os.getenv("REDIS_URL", None)
+
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://10.0.2.2",
+        "https://your-render-url",
+    ]
 
     RATE_LIMIT_MAX_REQ: int = 10
     RATE_LIMIT_WINDOW_SEC: int = 60

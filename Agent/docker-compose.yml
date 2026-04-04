@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   backend:
-    build: .
+    build: ./backend
     container_name: codex-backend
     restart: always
     env_file:
@@ -12,6 +12,8 @@ services:
     depends_on:
       - mongo
       - redis
+    environment:
+      - PYTHONUNBUFFERED=1
 
   mongo:
     image: mongo:6

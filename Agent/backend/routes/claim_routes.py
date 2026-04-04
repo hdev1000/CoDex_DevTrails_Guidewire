@@ -1,32 +1,49 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from services.claim_service import ClaimService
+from fastapi import APIRouter
+from backend.models.claim import ClaimInput
+from backend.services.claim_service import ClaimService
+from backend.utils.response import success_response, error_response
 
 router = APIRouter(prefix="/claims", tags=["Claims"])
+cs = ClaimService()
 
-class ClaimRequest(BaseModel):
-    claim_id: str
-    user_id: str
-    amount: float
-    description: str
-    device_info: dict
-    location: dict
-    images: list
-
-claim_service = ClaimService()
-
-@router.post("/evaluate")
-async def evaluate_claim(payload: ClaimRequest):
+@router.post("/submit")
+async def submit_claim(payload: dict):
     try:
-        result = await claim_service.process_claim(payload.dict())
-        return {"status": "success", "result": result}
+        claim = ClaimInput.parse_obj(payload)
+        result = await cs.create_claim(claim)
+        return success_response(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return error_response("CLAIM_SUBMIT_FAILED", str(e))
 
+@router.post("/verify")
+async def verify_claim(payload: dict):
+    try:
+        claim = ClaimInput.parse_obj(payload)
+        result = await cs.create_claim(claim)
+        return success_response(result)
+    except Exception as e:
+        return error_response("CLAIM_VERIFY_FAILED", str(e))
+
+@router.get("/list")
+def list_claims(user_id: str):
+    try:
+        return success_response(cs.list_claims(user_id))
+    except Exception as e:
+        return error_response("CLAIM_LIST_FAILED", str(e))
 
 @router.get("/{claim_id}")
-async def get_claim_status(claim_id: str):
-    status = claim_service.get_claim_status(claim_id)
-    if not status:
-        raise HTTPException(status_code=404, detail="Claim not found")
-    return {"claim_id": claim_id, "status": status}
+def get_claim(claim_id: str):
+    try:
+        data = cs.get_claim(claim_id)
+        if not data:
+            return error_response("CLAIM_NOT_FOUND", "Claim not found")
+        return success_response(data)
+    except Exception as e:
+        return error_response("CLAIM_GET_FAILED", str(e))
+
+@router.get("/status/{claim_id}")
+def claim_status(claim_id: str):
+    try:
+        return success_response({"status": cs.get_status(claim_id)})
+    except Exception as e:
+        return error_response("CLAIM_STATUS_FAILED", str(e))

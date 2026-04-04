@@ -1,24 +1,26 @@
 import hashlib
 import json
-from services.redis_client import redis_client
+from backend.services.redis_client import redis_client
 
 DEVICE_FINGERPRINT_TTL = 60 * 60 * 24 * 30  # 30 days
+
 
 def build_fingerprint(device_info):
     payload = json.dumps(device_info, sort_keys=True)
     return hashlib.sha256(payload.encode()).hexdigest()
+
 
 def track_device(user_id, fingerprint):
     key = f"fingerprint:{user_id}"
     redis_client.sadd(key, fingerprint)
     redis_client.expire(key, DEVICE_FINGERPRINT_TTL)
 
+
 def evaluate_device_fingerprint(user_id, device_info):
-    fp = build_fingerprint(device_info)
+    fp = build_fingerprint(device_info or {})
     key = f"fingerprint:{user_id}"
 
-    known_devices = redis_client.smembers(key)
-    known_devices = {d.decode() for d in known_devices}
+    known_devices = redis_client.smembers(key) or set()
 
     track_device(user_id, fp)
 
@@ -28,7 +30,7 @@ def evaluate_device_fingerprint(user_id, device_info):
             "message": "Device recognized."
         }
 
-    if len(known_devices) == 0:
+    if not known_devices:
         return {
             "risk": 0.1,
             "message": "First-time device registration."
@@ -42,5 +44,5 @@ def evaluate_device_fingerprint(user_id, device_info):
 
     return {
         "risk": 0.4,
-        "message": "New device fingerprint — medium risk."
+        "message": "New device fingerprint ??? medium risk."
     }
